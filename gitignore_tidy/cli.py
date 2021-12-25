@@ -13,7 +13,6 @@ parser.add_argument(
     default=[PATH_GITIGNORE], help='files to tidy',
 )
 args = parser.parse_args()
-print(args.files)
 
 
 def main(
