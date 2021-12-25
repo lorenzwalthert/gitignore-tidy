@@ -11,5 +11,5 @@ setup(
     entry_points={
         'console_scripts': ['gitignore-tidy=gitignore_tidy.cli:main'],
     },
-    zip_safe=False,
+    python_requires='>3.9',
 )
