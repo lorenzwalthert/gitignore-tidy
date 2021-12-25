@@ -8,6 +8,6 @@ setup(name='gitignore-tidy',
       license='MIT',
       packages=find_packages(),
       entry_points = {
-        'console_scripts': ['gitignore-tidy=gitignore_tidy.core:tidy'],
+        'console_scripts': ['gitignore-tidy=gitignore_tidy.cli:main'],
     },
       zip_safe=False)
