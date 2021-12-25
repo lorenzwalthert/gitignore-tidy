@@ -1,0 +1,5 @@
+-   id: tidy-gitignore
+    name: Sort entries in gitignore
+    description: Ensure gitignore entries are unique, sorted and have no unecessary white spaces
+    entry: gitignore-tidy
+    language: python
