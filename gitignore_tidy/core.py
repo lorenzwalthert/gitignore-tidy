@@ -51,29 +51,6 @@ def _sort_lines(lines):
     
     return sorted_negated
 
-            
-
-def _sort_lines1(lines):
-    unordered = dict()
-    if lines[0].startswith("!"):
-        raise ValueError(f"{PATH_GITIGNORE} files can't start with a exclusion.")
-    for l in lines:
-        if l.startswith("!"):
-            unordered[previous_l].append(l)
-        else:
-            unordered[l] = [l]
-            previous_l = l
-
-    keys = sorted(unordered.keys())
-    out = []
-    for key in keys:
-        values_in_key = unordered[key]
-        for value in values_in_key:
-            out.append(value)
-    
-    return out
-
-
 def order(seq): 
     return [x for x, y in sorted(enumerate(seq), key=lambda x: x[1])]
 
