@@ -2,35 +2,37 @@ import logging
 import os
 import re
 import sys
-
-PATH_GITIGNORE = '.gitignore'
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.StreamHandler(sys.stdout))
 logger.setLevel(logging.INFO)
 
 
-def tidy(allow_trailing_whitespace=False):
-    if not os.path.exists(PATH_GITIGNORE):
-        raise FileNotFoundError('No .gitignore file present.')
+def tidy(files, allow_trailing_whitespace=False):
+    [tidy_one(file, allow_trailing_whitespace) for file in files]
 
-    with open(PATH_GITIGNORE) as f:
+
+def tidy_one(file, allow_trailing_whitespace):
+    if not os.path.exists(file):
+        raise FileNotFoundError(f'{file} not found.')
+
+    with open(file) as f:
         lines = _normalize(
             f.read().splitlines(),
             allow_trailing_whitespace=allow_trailing_whitespace,
         )
 
     if len(lines) < 1:
-        logger.info(f'{PATH_GITIGNORE} is empty.')
+        logger.info(f'{file} is empty.')
         return
 
     sorted_lines = _sort_lines(lines)
     if sorted_lines == lines:
-        logger.info(f'{PATH_GITIGNORE} already tidy.')
+        logger.info(f'{file} already tidy.')
         return
 
-    with open(PATH_GITIGNORE, 'w') as f:
+    with open(file, 'w') as f:
         f.writelines([line + '\n' for line in sorted_lines])
-    logger.info(f'Succesfully written f{PATH_GITIGNORE}.')
+    logger.info(f'Succesfully written {file}.')
 
 
 def _normalize(lines, allow_trailing_whitespace):
