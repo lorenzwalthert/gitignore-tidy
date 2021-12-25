@@ -4,3 +4,4 @@
     entry: gitignore-tidy
     language: python
     files: "\\.gitignore$"
+    language_version: 3.9
