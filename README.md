@@ -3,7 +3,7 @@ This little python package exposes one command line executable and [pre-commit h
 
 * remove leading or trailing white space (unless `--allow-trailing-white-space` is set).
 * remove duplicate entries.
-* order entries while respecting that [negating entries](https://git-scm.com/docs/gitignore#_pattern_format) must always go *after* non-negating entries, e.g. 
+* order entries while respecting that [negating entries](https://git-scm.com/docs/gitignore#_pattern_format) must always go *after* non-negating entries, e.g.
 
 
 ```
@@ -24,14 +24,13 @@ In your `.pre-commit-config.yaml`:
 ```yaml
 -   repo: https://github.com/lorenzwalthert/gitignore-tidy
     rev: 04b1390
-    hooks: 
+    hooks:
     -   id: tidy-gitignore
         # args: [--allow-trailing-whitespace]
 ```
 
 
-## TODO: 
+## TODO:
 
 * Tests
 * treating of comments.
-
