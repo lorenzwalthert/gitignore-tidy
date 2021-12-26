@@ -3,6 +3,7 @@ This little python package exposes one command line executable and [pre-commit h
 
 * remove leading or trailing white space (unless `--allow-trailing-white-space` is set).
 * remove duplicate entries.
+* allow at most one blank line before comments.
 * order entries while respecting that [negating entries](https://git-scm.com/docs/gitignore#_pattern_format) must always go *after* non-negating entries, e.g.
 
 
@@ -28,9 +29,3 @@ In your `.pre-commit-config.yaml`:
     -   id: tidy-gitignore
         # args: [--allow-trailing-whitespace]
 ```
-
-
-## TODO:
-
-* Tests
-* treating of comments.
