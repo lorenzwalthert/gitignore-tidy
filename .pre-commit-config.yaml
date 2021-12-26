@@ -44,6 +44,6 @@ repos:
     hooks:
     -   id: mypy
 -   repo: https://github.com/lorenzwalthert/gitignore-tidy
-    rev: a133f52a28ef9ff8061087f09bdeb20022bb8427
+    rev: 19adcadea1547dd719b66f8222a34b55abfc5690
     hooks:
     -   id: tidy-gitignore
