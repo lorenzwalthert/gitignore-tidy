@@ -79,6 +79,11 @@ def _sections_split(lines):
                 sections[current_section]['trailing_blanks'] = 1
             else:
                 sections[current_section]['trailing_blanks'] = 0
+        elif idx == 0:  # first line has no comment
+            sections[current_section] = dict(
+                values=[line], trailing_blanks=0,
+            )
+
         else:
             sections[current_section]['values'].append(line)
     return sections

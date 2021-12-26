@@ -54,6 +54,30 @@ def test__sort_lines_with_comments_blank_lines():
     assert _sort_lines_with_comments(input) == output
 
 
+def test__sort_lines_with_comments_without_root():
+    input = [
+        'a', 'x', 'b', '',  '# section 2',
+        'z', 'e', '!e/f/*', '*.pdf', '', '', '# more',
+    ]
+    output = [
+        'a', 'b', 'x', '',  '# section 2',
+        '*.pdf', 'e', '!e/f/*', 'z', '', '# more',
+    ]
+    assert _sort_lines_with_comments(input) == output
+
+
+def test__sort_lines_with_comments_with_leading_blank_lines():
+    input = [
+        '', '',  'a', 'x', 'b', '',  '# section 2',
+        'z', 'e', '!e/f/*', '*.pdf', '', '', '# more',
+    ]
+    output = [
+        'a', 'b', 'x', '',  '# section 2',
+        '*.pdf', 'e', '!e/f/*', 'z', '', '# more',
+    ]
+    assert _sort_lines_with_comments(input) == output
+
+
 def test_tidy():
 
     contents = """\
