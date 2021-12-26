@@ -24,7 +24,7 @@ In your `.pre-commit-config.yaml`:
 
 ```yaml
 -   repo: https://github.com/lorenzwalthert/gitignore-tidy
-    rev: 04b1390
+    rev: 60fc25cef15cbc8f96e766d951cd594d5bf7555a
     hooks:
     -   id: tidy-gitignore
         # args: [--allow-trailing-whitespace]
