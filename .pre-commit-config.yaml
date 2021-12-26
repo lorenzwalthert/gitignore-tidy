@@ -43,6 +43,7 @@ repos:
     rev: v0.920
     hooks:
     -   id: mypy
+        language_version: '3.9'
 -   repo: https://github.com/lorenzwalthert/gitignore-tidy
     rev: 19adcadea1547dd719b66f8222a34b55abfc5690
     hooks:
