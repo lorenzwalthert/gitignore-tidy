@@ -20,7 +20,7 @@ def test__normalize():
     # remove leading whitespace
     assert _normalize(['x', ' a']) == ['x', 'a']
 
-    assert _normalize(['x', ' a'], allow_trailing_whitespace=True) == [
+    assert _normalize(['x', ' a'], allow_leading_whitespace=True) == [
         'x', ' a',
     ]
 

@@ -2,14 +2,20 @@ import logging
 import os
 import re
 import sys
+from pathlib import Path
+from typing import List
+from typing import Optional
+
+import typer
+app = typer.Typer()
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.StreamHandler(sys.stdout))
 logger.setLevel(logging.INFO)
 
 
-def _normalize(lines, allow_trailing_whitespace=False):
-    if not allow_trailing_whitespace:
+def _normalize(lines, allow_leading_whitespace=False):
+    if not allow_leading_whitespace:
         lines = [re.sub('^(!)? *\t*', '\\1', line) for line in lines]
     lines = [re.sub(' *\t*$', '', line) for line in lines]
     unique = []
@@ -79,14 +85,14 @@ def _sort_lines_with_comments(lines):
     return lines_out
 
 
-def _tidy_one(file, allow_trailing_whitespace=False):
+def _tidy_one(file, allow_leading_whitespace=False):
     if not os.path.exists(file):
         raise FileNotFoundError(f'{file} not found.')
 
     with open(file) as f:
         lines = _normalize(
             f.read().splitlines(),
-            allow_trailing_whitespace=allow_trailing_whitespace,
+            allow_leading_whitespace=allow_leading_whitespace,
         )
 
     if len(lines) < 1:
@@ -103,5 +109,25 @@ def _tidy_one(file, allow_trailing_whitespace=False):
     logger.info(f'Succesfully written {file}.')
 
 
-def tidy(files, allow_trailing_whitespace=False):
-    [_tidy_one(file, allow_trailing_whitespace) for file in files]
+@app.command()
+def tidy(
+    files: Optional[List[Path]] = typer.Argument(
+        None,
+        help="""\
+        Paths to one or more gitignore files.
+        If not supplied, the .gitignore in the current
+        working directory will be assumed.
+        """,
+    ),
+    allow_leading_whitespace: bool = typer.Option(
+        False,
+        help='Whether or not to allow trailing whitespaces in file names',
+    ),
+
+):
+    """
+    Tidy .gitignore files
+    """
+    if files is None or len(files) < 1:
+        files = [Path('.gitignore')]
+    [_tidy_one(file, allow_leading_whitespace) for file in files]

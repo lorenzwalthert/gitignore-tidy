@@ -1,22 +1,21 @@
-import argparse
+from pathlib import Path
+from typing import Optional
 
-from gitignore_tidy.core import tidy
-PATH_GITIGNORE = '.gitignore'
-
-parser = argparse.ArgumentParser(description='Tidy up your .gitignore file')
-parser.add_argument(
-    '--allow-trailing-whitespace', action=argparse.BooleanOptionalAction,
-    help='Whether or not to allow trailing whitespaces in file names',
-)
-parser.add_argument(
-    'files', type=str, nargs='*',
-    default=[PATH_GITIGNORE], help='files to tidy',
-)
-args = parser.parse_args()
+import typer
 
 
 def main(
-    files=args.files,
-    allow_trailing_whitespace=args.allow_trailing_whitespace,
+    name: Optional[Path] = typer.Argument(None),
+    allow_leading_whitespace: bool = typer.Option(
+        False,
+        help='Whether or not to allow trailing whitespaces in file names',
+    ),
 ):
-    tidy(files, allow_trailing_whitespace)
+    if name is None:
+        print(f'Hello {name}')
+    else:
+        typer.echo('Hello World!')
+
+
+if __name__ == '__main__':
+    typer.run(main)
