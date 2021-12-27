@@ -1,17 +1,11 @@
-import logging
 import os
 import re
-import sys
 from pathlib import Path
 from typing import List
 from typing import Optional
 
 import typer
 app = typer.Typer()
-
-logger = logging.getLogger(__name__)
-logger.addHandler(logging.StreamHandler(sys.stdout))
-logger.setLevel(logging.INFO)
 
 
 def _normalize(lines, allow_leading_whitespace=False):
@@ -20,7 +14,7 @@ def _normalize(lines, allow_leading_whitespace=False):
     lines = [re.sub(' *\t*$', '', line) for line in lines]
     unique = []
     for line in lines:
-        if line not in unique:
+        if line not in unique or line == '':
             unique.append(line)
     return unique
 
@@ -85,32 +79,43 @@ def _sort_lines_with_comments(lines):
     return lines_out
 
 
-def _tidy_one(file, allow_leading_whitespace=False):
-    if not os.path.exists(file):
-        raise FileNotFoundError(f'{file} not found.')
+def _tidy_file(path, *, allow_leading_whitespace=False):
+    if not os.path.exists(path):
+        raise FileNotFoundError(f'{path} not found.')
 
-    with open(file) as f:
-        lines = _normalize(
-            f.read().splitlines(),
-            allow_leading_whitespace=allow_leading_whitespace,
-        )
+    with open(path) as f:
+        lines = f.read().splitlines()
 
     if len(lines) < 1:
-        logger.info(f'{file} is empty.')
+        typer.echo(f'{path} is empty.')
         return
+
+    sorted_lines = _tidy_lines(
+        lines,
+        path=path,
+        allow_leading_whitespace=allow_leading_whitespace,
+    )
+    with open(path, 'w') as f:
+        f.writelines([line + '\n' for line in sorted_lines])
+        typer.echo(f'Successfully written {path}.')
+
+
+def _tidy_lines(lines, *, path, allow_leading_whitespace):
+    lines = _normalize(
+        lines,
+        allow_leading_whitespace=allow_leading_whitespace,
+    )
 
     sorted_lines = _sort_lines_with_comments(lines)
     if sorted_lines == lines:
-        logger.info(f'{file} already tidy.')
-        return
+        typer.echo(f'{path} already tidy.')
+        typer.Exit()
 
-    with open(file, 'w') as f:
-        f.writelines([line + '\n' for line in sorted_lines])
-    logger.info(f'Succesfully written {file}.')
+    return sorted_lines
 
 
 @app.command()
-def tidy(
+def tidy_files(
     files: Optional[List[Path]] = typer.Argument(
         None,
         help="""\
@@ -130,4 +135,7 @@ def tidy(
     """
     if files is None or len(files) < 1:
         files = [Path('.gitignore')]
-    [_tidy_one(file, allow_leading_whitespace) for file in files]
+    [
+        _tidy_file(file, allow_leading_whitespace=allow_leading_whitespace)
+        for file in files
+    ]

@@ -1,10 +1,7 @@
-import os
-import tempfile
-
 from gitignore_tidy.core import _normalize
 from gitignore_tidy.core import _sort_lines
 from gitignore_tidy.core import _sort_lines_with_comments
-from gitignore_tidy.core import tidy
+from gitignore_tidy.core import _tidy_lines
 
 
 def test__normalize():
@@ -78,28 +75,16 @@ def test__sort_lines_with_comments_with_leading_blank_lines():
     assert _sort_lines_with_comments(input) == output
 
 
-def test_tidy():
-
-    contents = """\
-    # secion1
-    a
-    b
-    !a/b
-
-    # section 55
-    x
-    *.pdf
-    """
-
-    with tempfile.TemporaryDirectory() as temp_dir:
-        g1 = os.path.join(temp_dir, '.gitignore')
-        with open(g1, 'w') as file:
-            file.write(contents)
-
-        dir2 = os.path.join(temp_dir, 'docs')
-        os.mkdir(dir2)
-        g2 = os.path.join(dir2, '.gitignore')
-        with open(g2, 'w') as file:
-            file.write(contents)
-
-        tidy([g1, g2])
+def test__tidy_one_with_already_correctly_ordered():
+    input = [
+        'a', 'b', '', '', '', 'x', '',  '# section 2',
+        '*.pdf', 'e', '!e/f/*', '', '', 'z', '', '# more', '',
+    ]
+    output = [
+        'a', 'b', 'x', '',  '# section 2',
+        '*.pdf', 'e', '!e/f/*', 'z', '', '# more',
+    ]
+    assert _tidy_lines(
+        input, path='/path/to/file',
+        allow_leading_whitespace=False,
+    ) == output
