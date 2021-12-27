@@ -92,25 +92,29 @@ def _tidy_file(path, *, allow_leading_whitespace=False):
 
     sorted_lines = _tidy_lines(
         lines,
-        path=path,
         allow_leading_whitespace=allow_leading_whitespace,
     )
+
+    _write_if_changed(sorted_lines, lines, path)
+
+
+def _write_if_changed(sorted_lines, lines, path):
+    if sorted_lines == lines:
+        typer.echo(f'{path} already tidy.')
+        raise typer.Exit()
+
     with open(path, 'w') as f:
         f.writelines([line + '\n' for line in sorted_lines])
         typer.echo(f'Successfully written {path}.')
 
 
-def _tidy_lines(lines, *, path, allow_leading_whitespace):
+def _tidy_lines(lines, *, allow_leading_whitespace):
     lines = _normalize(
         lines,
         allow_leading_whitespace=allow_leading_whitespace,
     )
 
     sorted_lines = _sort_lines_with_comments(lines)
-    if sorted_lines == lines:
-        typer.echo(f'{path} already tidy.')
-        typer.Exit()
-
     return sorted_lines
 
 

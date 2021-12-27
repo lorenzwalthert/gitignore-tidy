@@ -37,3 +37,4 @@ def test_cli():
         result = runner.invoke(app, [g1])
         assert result.exit_code == 0
         assert 'already' in result.stdout
+        assert 'Successfully written' not in result.stdout

@@ -85,6 +85,6 @@ def test__tidy_one_with_already_correctly_ordered():
         '*.pdf', 'e', '!e/f/*', 'z', '', '# more',
     ]
     assert _tidy_lines(
-        input, path='/path/to/file',
+        input,
         allow_leading_whitespace=False,
     ) == output
