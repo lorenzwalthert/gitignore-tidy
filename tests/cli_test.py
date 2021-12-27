@@ -1,4 +1,5 @@
 import os
+import re
 import tempfile
 
 from typer.testing import CliRunner
@@ -33,8 +34,20 @@ def test_cli():
 
         result = runner.invoke(app, [g1, g2])
         assert result.exit_code == 0
-        assert 'Successfully written' in result.stdout
+        assert re.search(
+            f'^Successfully written {g1}\\.\nSuccessfully written {g2}',
+            result.stdout,
+        )
         result = runner.invoke(app, [g1])
         assert result.exit_code == 0
-        assert 'already' in result.stdout
-        assert 'Successfully written' not in result.stdout
+        # assert re.search('already' in result.stdout
+        assert re.search(f'^{g1} already tidy.\n$', result.stdout)
+        # second file is processed when first file is ok
+        with open(g2, 'w') as file:
+            file.write(contents)
+
+        result = runner.invoke(app, [g1, g2])
+        assert re.search(
+            f'^{g1} already tidy\\.\nSuccessfully written {g2}.\n$',
+            result.stdout,
+        )
