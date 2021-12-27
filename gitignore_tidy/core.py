@@ -101,7 +101,7 @@ def _tidy_file(path, *, allow_leading_whitespace=False):
 def _write_if_changed(sorted_lines, lines, path):
     if sorted_lines == lines:
         typer.echo(f'{path} already tidy.')
-        raise typer.Exit()
+        return
 
     with open(path, 'w') as f:
         f.writelines([line + '\n' for line in sorted_lines])
