@@ -24,8 +24,10 @@ In your `.pre-commit-config.yaml`:
 
 ```yaml
 -   repo: https://github.com/lorenzwalthert/gitignore-tidy
-    rev: 60fc25cef15cbc8f96e766d951cd594d5bf7555a
+    rev: bb80136de68e7fe844cd0397f0088f469845d258.
     hooks:
     -   id: tidy-gitignore
         # args: [--allow-leading-whitespace]
 ```
+
+And run `pre-commit autopudate` to get the latest hook version.
