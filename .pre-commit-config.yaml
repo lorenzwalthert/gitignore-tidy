@@ -21,7 +21,7 @@ repos:
         exclude: ^identify/vendor/licenses\.py$
         additional_dependencies: [flake8-typing-imports==1.10.1]
 -   repo: https://github.com/pre-commit/mirrors-autopep8
-    rev: v1.5.7
+    rev: v1.6.0
     hooks:
     -   id: autopep8
 -   repo: https://github.com/asottile/reorder_python_imports
@@ -35,7 +35,7 @@ repos:
     -   id: add-trailing-comma
         args: [--py36-plus]
 -   repo: https://github.com/asottile/pyupgrade
-    rev: v2.29.1
+    rev: v2.31.0
     hooks:
     -   id: pyupgrade
         args: [--py36-plus]
@@ -45,6 +45,6 @@ repos:
     -   id: mypy
         language_version: '3.9'
 -   repo: https://github.com/lorenzwalthert/gitignore-tidy
-    rev: 48c410f2549bfea6d4cb3a712df73017dd540904
+    rev: 65851818058ac40fd8e9640b4dc026e8724c629f
     hooks:
     -   id: tidy-gitignore
