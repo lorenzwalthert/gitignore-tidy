@@ -40,11 +40,11 @@ repos:
     -   id: pyupgrade
         args: [--py36-plus]
 -   repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v0.930
+    rev: v0.931
     hooks:
     -   id: mypy
         language_version: '3.9'
 -   repo: https://github.com/lorenzwalthert/gitignore-tidy
-    rev: 65851818058ac40fd8e9640b4dc026e8724c629f
+    rev: 70a8e13282b4151e4763497e40ba3fd8ab917036
     hooks:
     -   id: tidy-gitignore
