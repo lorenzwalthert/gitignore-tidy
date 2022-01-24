@@ -45,6 +45,6 @@ repos:
     -   id: mypy
         language_version: '3.9'
 -   repo: https://github.com/lorenzwalthert/gitignore-tidy
-    rev: 10b77c01834103c1bfcad9115e5bdd3cfb5d1ad8
+    rev: 1fc26f3cc92c6f95f65b7dfc39b02d5962fe1807
     hooks:
     -   id: tidy-gitignore
