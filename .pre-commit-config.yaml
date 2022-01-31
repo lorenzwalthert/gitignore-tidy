@@ -25,7 +25,7 @@ repos:
     hooks:
     -   id: autopep8
 -   repo: https://github.com/asottile/reorder_python_imports
-    rev: v2.6.0
+    rev: v2.7.1
     hooks:
     -   id: reorder-python-imports
         args: [--py3-plus]
@@ -45,6 +45,6 @@ repos:
     -   id: mypy
         language_version: '3.9'
 -   repo: https://github.com/lorenzwalthert/gitignore-tidy
-    rev: 1fc26f3cc92c6f95f65b7dfc39b02d5962fe1807
+    rev: 86f7f269ef1c9c3506b864710fb0c9dca0f51e24
     hooks:
     -   id: tidy-gitignore
