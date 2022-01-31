@@ -48,3 +48,9 @@ repos:
     rev: 86f7f269ef1c9c3506b864710fb0c9dca0f51e24
     hooks:
     -   id: tidy-gitignore
+
+
+
+
+ci:
+    autoupdate_schedule: quarterly
