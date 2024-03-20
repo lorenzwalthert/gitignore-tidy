@@ -4,14 +4,34 @@ import typing
 
 import typer
 
-app = typer.Typer()
+
+def tidy_file(path: pathlib.Path, *, allow_leading_whitespace: bool = False):
+
+    if not path.exists():
+        raise FileNotFoundError(f"{path} not found.")
+
+    with path.open("r") as f:
+        lines = f.read().splitlines()
+
+    if len(lines) < 1:
+        typer.echo(f"{path} is empty.")
+        return
+
+    sorted_lines = _tidy_lines(
+        lines,
+        allow_leading_whitespace=allow_leading_whitespace,
+    )
+
+    _write_if_changed(sorted_lines, lines, path)
 
 
 def _normalize(lines: list[str], allow_leading_whitespace: bool = False) -> list[str]:
+
     if not allow_leading_whitespace:
         lines = [re.sub("^(!)? *\t*", "\\1", line) for line in lines]
     lines = [re.sub(" *\t*$", "", line) for line in lines]
     unique = []
+
     for line in lines:
         if line not in unique or line == "":
             unique.append(line)
@@ -79,26 +99,6 @@ def _sort_lines_with_comments(lines: list[str]) -> list[str]:
     return lines_out
 
 
-def _tidy_file(path: pathlib.Path, *, allow_leading_whitespace: bool = False):
-
-    if not path.exists():
-        raise FileNotFoundError(f"{path} not found.")
-
-    with path.open("r") as f:
-        lines = f.read().splitlines()
-
-    if len(lines) < 1:
-        typer.echo(f"{path} is empty.")
-        return
-
-    sorted_lines = _tidy_lines(
-        lines,
-        allow_leading_whitespace=allow_leading_whitespace,
-    )
-
-    _write_if_changed(sorted_lines, lines, path)
-
-
 def _write_if_changed(
     sorted_lines: list[str],
     lines: list[str],
@@ -121,26 +121,3 @@ def _tidy_lines(lines: list[str], *, allow_leading_whitespace: bool):
 
     sorted_lines = _sort_lines_with_comments(lines)
     return sorted_lines
-
-
-@app.command()
-def tidy_files(
-    files: typing.Optional[list[pathlib.Path]] = typer.Argument(
-        None,
-        help="""\
-        Paths to one or more gitignore files.
-        If not supplied, the .gitignore in the current
-        working directory will be assumed.
-        """,
-    ),
-    allow_leading_whitespace: bool = typer.Option(
-        False,
-        help="Whether or not to allow trailing whitespaces in file names",
-    ),
-):
-    """
-    Tidy .gitignore files
-    """
-    if files is None or len(files) < 1:
-        files = [pathlib.Path(".gitignore")]
-    [_tidy_file(file, allow_leading_whitespace=allow_leading_whitespace) for file in files]

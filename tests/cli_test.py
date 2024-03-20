@@ -5,7 +5,7 @@ import tempfile
 import pytest
 from typer.testing import CliRunner
 
-from gitignore_tidy.core import app
+from gitignore_tidy.cli import app
 
 runner = CliRunner()
 
