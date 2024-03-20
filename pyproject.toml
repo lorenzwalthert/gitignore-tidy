@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "gitignore-tidy"
-version = "0.1.0"
+version = "0.1.1"
 description = "Tidy up your .gitignore files"
 authors = ["Lorenz Walthert <lorenz.walthert@icloud.com>"]
 license = "MIT"
