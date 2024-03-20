@@ -47,9 +47,18 @@ repos:
     rev: a2260df7cc08de00d7312aeff68cea6bcba48c42
     hooks:
     -   id: tidy-gitignore
+-   repo: https://github.com/commitizen-tools/commitizen
+    rev: v2.42.1
+    hooks:
+    - id: commitizen
+      stages: [ commit-msg ]
 
 
 
 
 ci:
     autoupdate_schedule: quarterly
+
+default_install_hook_types:
+  - commit-msg
+  - pre-commit
