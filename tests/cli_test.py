@@ -2,15 +2,17 @@ import os
 import re
 import tempfile
 
+import pytest
 from typer.testing import CliRunner
 
 from gitignore_tidy.core import app
+
 runner = CliRunner()
 
 
-def test_cli():
-
-    contents = """\
+@pytest.fixture
+def contents():
+    return """\
     # secion1
     a
     b
@@ -20,6 +22,9 @@ def test_cli():
     x
     *.pdf
     """
+
+
+def test_cli(contents):
 
     with tempfile.TemporaryDirectory() as temp_dir:
         g1 = os.path.join(temp_dir, '.gitignore')
@@ -38,6 +43,7 @@ def test_cli():
             f'^Successfully written {g1}\\.\nSuccessfully written {g2}',
             result.stdout,
         )
+
         result = runner.invoke(app, [g1])
         assert result.exit_code == 0
         # assert re.search('already' in result.stdout
