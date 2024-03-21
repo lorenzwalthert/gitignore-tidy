@@ -59,6 +59,7 @@ repos:
 
 ci:
     autoupdate_schedule: quarterly
+    skip: [pyright]
 
 default_install_hook_types:
   - commit-msg
