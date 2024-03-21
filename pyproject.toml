@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "gitignore-tidy"
-version = "0.1.1"
+version = "0.1.2"
 description = "Tidy up your .gitignore files"
 authors = ["Lorenz Walthert <lorenz.walthert@icloud.com>"]
 license = "MIT"
@@ -13,12 +13,15 @@ typer = "^0.9.0"
 pytest = "^8.0.0"
 
 [tool.poetry.scripts]
-gitignore-tidy = "gitignore_tidy.core:app"
+gitignore-tidy = "gitignore_tidy.cli:app"
 
 
 [tool.poetry.group.dev.dependencies]
 commitizen = "^3.20.0"
+pyright = "^1.1.355"
 
+[tool.flake8]
+max-line-length = 120
 
 [tool.commitizen]
 name = "cz_conventional_commits"
@@ -28,6 +31,10 @@ version_provider = "poetry"
 update_changelog_on_bump = false
 major_version_zero = true
 changelog_incremental = true
+
+[tool.black]
+line-length = 120
+
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
