@@ -1,4 +1,4 @@
-# Tidy up your in `.gititnore` files
+# Tidy up your `.gititnore` files
 
 This little python package exposes one command line executable and [pre-commit hook](https://pre-commit.com) that can be used to tidy up a `.gitignore` file. It does
 
