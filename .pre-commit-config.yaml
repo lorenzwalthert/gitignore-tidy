@@ -21,7 +21,7 @@ repos:
     rev: 24.3.0
     hooks:
       - id: black
--   repo: https://github.com/asottile/reorder_python_imports
+-   repo: https://github.com/asottile/reorder-python-imports
     rev: v3.12.0
     hooks:
     -   id: reorder-python-imports
@@ -32,16 +32,16 @@ repos:
     -   id: add-trailing-comma
         args: [--py36-plus]
 -   repo: https://github.com/asottile/pyupgrade
-    rev: v3.15.1
+    rev: v3.15.2
     hooks:
     -   id: pyupgrade
         args: [--py36-plus]
 -   repo: https://github.com/lorenzwalthert/gitignore-tidy
-    rev: 86641946ac497f5e4d688c8ddcc6aa270cdbe59c
+    rev: 0.1.2
     hooks:
     -   id: tidy-gitignore
 -   repo: https://github.com/commitizen-tools/commitizen
-    rev: v3.20.0
+    rev: v3.21.3
     hooks:
     - id: commitizen
       stages: [ commit-msg ]
