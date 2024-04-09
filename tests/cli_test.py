@@ -2,26 +2,11 @@ import os
 import re
 import tempfile
 
-import pytest
 from typer.testing import CliRunner
 
 from gitignore_tidy.cli import app
 
 runner = CliRunner()
-
-
-@pytest.fixture
-def contents():
-    return """\
-    # secion1
-    a
-    b
-    !a/b
-
-    # section 55
-    x
-    *.pdf
-    """
 
 
 def test_cli(contents):

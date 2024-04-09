@@ -1,9 +1,13 @@
+import pathlib
+import tempfile
+
 import pytest
 
 from gitignore_tidy.core import _normalize
 from gitignore_tidy.core import _sort_lines
 from gitignore_tidy.core import _sort_lines_with_comments
 from gitignore_tidy.core import _tidy_lines
+from gitignore_tidy.core import tidy_file
 
 
 @pytest.mark.parametrize(
@@ -24,6 +28,15 @@ def test__normalize_with_leading_whitespace():
         "x",
         " a",
     ]
+
+
+def test_tidy_file(contents):
+    with tempfile.TemporaryDirectory() as temp_dir:
+        path = pathlib.Path(temp_dir, ".gitignore")
+        with path.open("w") as file:
+            file.write(contents)
+
+        tidy_file(path)
 
 
 @pytest.mark.parametrize(
