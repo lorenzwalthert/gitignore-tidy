@@ -135,7 +135,7 @@ class Section:
             self.trailing_blanks,
         )
 
-    def _materialized_trailing_blanks(self) -> list[str]:
+    def _materialized_trailing_blanks(self) -> list[typing.Literal[""]]:
         return [""] * self.trailing_blanks
 
     def __iter__(self):
