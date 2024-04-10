@@ -36,7 +36,7 @@ class GitIgnoreContents:
     sorted: bool = False
 
     """
-    Represents all contents of a `.gitignore` file.
+    Flat representation of a `.gitignore` file or parts of it
     """
 
     @classmethod
@@ -109,7 +109,8 @@ class GitIgnoreContents:
 @dataclasses.dataclass(frozen=True)
 class Section:
     """
-    One part of a normalised content of a `.gitignore` file
+    One part of a normalised content of a `.gitignore` file, with header and
+    trailing blanks parsed.
     """
 
     header: typing.Optional[str]
