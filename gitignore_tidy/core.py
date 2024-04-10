@@ -3,6 +3,7 @@ import itertools
 import pathlib
 import re
 import typing
+from functools import cached_property
 
 from gitignore_tidy.logging import logger
 
@@ -21,18 +22,19 @@ def tidy_file(path: pathlib.Path, *, allow_leading_whitespace: bool = False):
         logger.info(f"Successfully written {path}.")
 
 
-def tidy_lines(lines: "GitIgnoreContents", allow_leading_whitespace: bool) -> "NormalisedGitIgnoreContents":
+def tidy_lines(lines: "GitIgnoreContents", allow_leading_whitespace: bool) -> "GitIgnoreContents":
     normalised_contents = lines.normalize(allow_leading_whitespace=allow_leading_whitespace)
-    sorted_sections = SortedSections(tuple(section.sort() for section in normalised_contents.split()))
+    sorted_sections = Sections(tuple(section.sort() for section in normalised_contents.split()))
     return sorted_sections.as_contents()
 
 
 @dataclasses.dataclass(frozen=True)
 class GitIgnoreContents:
-    normalised: typing.ClassVar[bool] = False
-    sorted: typing.ClassVar[bool] = False
-
     lines: list[str]
+
+    normalised: bool = False
+    sorted: bool = False
+
     """
     Represents all contents of a `.gitignore` file.
     """
@@ -45,13 +47,13 @@ class GitIgnoreContents:
         with path.open("r") as f:
             lines = f.read().splitlines()
 
-        return cls(lines)
+        return cls(lines, normalised=False, sorted=False)
 
     def to_file(self, path: pathlib.Path):
         with path.open("w") as f:
             f.writelines([line + "\n" for line in self.lines])
 
-    def normalize(self, allow_leading_whitespace: bool = False) -> "NormalisedGitIgnoreContents":
+    def normalize(self, allow_leading_whitespace: bool = False) -> "GitIgnoreContents":
         lines = self.lines
         if not allow_leading_whitespace:
             lines = [re.sub("^(!)? *\t*", "\\1", line) for line in lines]
@@ -61,7 +63,7 @@ class GitIgnoreContents:
         for line in lines:
             if line not in unique or line == "":
                 unique.append(line)
-        return NormalisedGitIgnoreContents(unique)
+        return GitIgnoreContents(unique, normalised=True, sorted=self.sorted)
 
     def __iter__(self) -> typing.Iterator[str]:
         return iter(self.lines)
@@ -69,16 +71,10 @@ class GitIgnoreContents:
     def __len__(self) -> int:
         return len(self.lines)
 
-
-class NormalisedGitIgnoreContents(GitIgnoreContents):
-    """
-    Represents a polished `.gitignore` file, i.e. with only unique entries, trailing
-    (and potentially leading) spaces removed.
-    """
-
-    normalised: typing.ClassVar[bool] = True
-
     def split(self) -> "Sections":
+        if not self.normalised:
+            raise AssertionError("`GitIgnoreContents` must be normalised before splitting is possible.")
+
         lines = self.lines
         sections = dict()
         current_section = None
@@ -100,7 +96,11 @@ class NormalisedGitIgnoreContents(GitIgnoreContents):
                 sections[current_section]["values"].append(line)
 
         sections = (
-            Section(header, NormalisedGitIgnoreContents(content["values"]), content["trailing_blanks"])
+            Section(
+                header,
+                GitIgnoreContents(content["values"], normalised=self.normalised, sorted=False),
+                content["trailing_blanks"],
+            )
             for header, content in sections.items()
         )
         return Sections(tuple(sections))
@@ -113,13 +113,24 @@ class Section:
     """
 
     header: str | None
-    lines: NormalisedGitIgnoreContents
+    lines: GitIgnoreContents
     trailing_blanks: int = 0
 
-    def sort(self):
-        return SortedSection(
+    def __post_init__(self):
+        assert self.normalised, "Sections can't be initiated without normalised contents."
+
+    @cached_property
+    def normalised(self):
+        return self.lines.normalised
+
+    @cached_property
+    def sorted(self):
+        return self.lines.sorted
+
+    def sort(self) -> "Section":
+        return Section(
             self.header,
-            NormalisedGitIgnoreContents(self._sort(self.lines.lines)),
+            GitIgnoreContents(self._sort(self.lines.lines), normalised=True, sorted=True),
             self.trailing_blanks,
         )
 
@@ -156,19 +167,17 @@ class Sections:
 
     sections: tuple[Section, ...]
 
+    @cached_property
+    def sorted(self):
+        return all(section.sorted for section in self)
+
+    @cached_property
+    def normalised(self):
+        return all(section.normalised for section in self)
+
     def __iter__(self) -> typing.Iterator[Section]:
         return iter(self.sections)
 
-    def as_contents(self) -> NormalisedGitIgnoreContents:
+    def as_contents(self) -> GitIgnoreContents:
         lines = list(itertools.chain(*(list(section) for section in self)))
-        return NormalisedGitIgnoreContents(lines)
-
-
-@dataclasses.dataclass(frozen=True)
-class SortedSections(Sections):
-    sorted: typing.ClassVar[bool] = True
-
-
-@dataclasses.dataclass(frozen=True)
-class SortedSection(Section):
-    sorted: typing.ClassVar[bool] = True
+        return GitIgnoreContents(lines, normalised=self.normalised, sorted=self.sorted)

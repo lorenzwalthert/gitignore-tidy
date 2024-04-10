@@ -5,17 +5,14 @@ import tempfile
 import pytest
 
 from gitignore_tidy.core import GitIgnoreContents
-from gitignore_tidy.core import NormalisedGitIgnoreContents
 from gitignore_tidy.core import Section
 from gitignore_tidy.core import Sections
-from gitignore_tidy.core import SortedSection  # TODO how to import objects? Use * and __all__?
 from gitignore_tidy.core import tidy_file
 from gitignore_tidy.core import tidy_lines
 
 
-def _create_section(header, input: list[str], trailing_blanks: int = 0, sorted: bool = False):
-    constructor = SortedSection if sorted else Section
-    return constructor(header, NormalisedGitIgnoreContents(input), trailing_blanks=trailing_blanks)
+def _create_section_from_normalised(header, lines: list[str], sorted: bool = False, trailing_blanks: int = 0):
+    return Section(header, GitIgnoreContents(lines, normalised=True, sorted=sorted), trailing_blanks=trailing_blanks)
 
 
 class TestTidyFile:
@@ -109,8 +106,6 @@ class TestGitIgnoreContents:
                 lines = f.readlines()
         assert contents.split("\n") == [line.rstrip() for line in lines]
 
-
-class TestNormalisedGitIgnoreContents:
     @pytest.mark.parametrize(
         ("input", "expected_output"),
         [
@@ -118,19 +113,19 @@ class TestNormalisedGitIgnoreContents:
                 ["b", "a", "", "#", "q"],
                 Sections(
                     (
-                        Section(None, NormalisedGitIgnoreContents(["b", "a", ""])),
-                        Section("#", NormalisedGitIgnoreContents(["q"]), trailing_blanks=1),
+                        Section(None, GitIgnoreContents(["b", "a", ""], normalised=True)),
+                        Section("#", GitIgnoreContents(["q"], normalised=True), trailing_blanks=1),
                     ),
                 ),
             ),
             (
                 ["# b", "a", "q"],  # if has spaces, it's not normalised
-                Sections((Section("# b", NormalisedGitIgnoreContents(["a", "q"]), trailing_blanks=0),)),
+                Sections((Section("# b", GitIgnoreContents(["a", "q"], normalised=True), trailing_blanks=0),)),
             ),
         ],
     )
     def test_split(self, input, expected_output):
-        assert NormalisedGitIgnoreContents(input).split() == expected_output
+        assert GitIgnoreContents(input, normalised=True).split() == expected_output
 
 
 class TestSection:
@@ -151,7 +146,11 @@ class TestSection:
         ),
     )
     def test_sort(self, input, expected_output):
-        assert _create_section(None, input).sort() == _create_section(None, expected_output, sorted=True)
+        assert _create_section_from_normalised(header=None, lines=input).sort() == _create_section_from_normalised(
+            header=None,
+            lines=expected_output,
+            sorted=True,
+        )
 
     @pytest.mark.parametrize(
         ("input", "expected_output"),
@@ -169,7 +168,16 @@ class TestSection:
         ),
     )
     def test_iter(self, input, expected_output):
-        assert list(_create_section(input["header"], input["lines"], input["trailing_blanks"])) == expected_output
+        assert (
+            list(
+                _create_section_from_normalised(
+                    header=input["header"],
+                    lines=input["lines"],
+                    trailing_blanks=input["trailing_blanks"],
+                ),
+            )
+            == expected_output
+        )
 
 
 class TestSections:
@@ -182,7 +190,7 @@ class TestSections:
 
     @classmethod
     def _sections_tuple(cls):  # TODO: underscore here and all other tests?
-        return (_create_section(cls.lines()[0], cls.lines()[1:]),) * cls.REPS
+        return (_create_section_from_normalised(cls.lines()[0], cls.lines()[1:]),) * cls.REPS
 
     @classmethod
     def _sections(cls):
@@ -193,10 +201,14 @@ class TestSections:
         assert tuple(self._sections()) == self._sections_tuple()
 
     def test_as_contents(self):
-        assert self._sections().as_contents() == NormalisedGitIgnoreContents(self.lines() * self.REPS)
+        assert self._sections().as_contents() == GitIgnoreContents(self.lines() * self.REPS, normalised=True)
 
 
 class TestTidyLines:
+
+    @classmethod
+    def tidy_lines(cls, input):
+        return list(tidy_lines(GitIgnoreContents(input), allow_leading_whitespace=False))
 
     @pytest.mark.parametrize(
         ("input", "expected_output"),
@@ -355,7 +367,45 @@ class TestTidyLines:
                 ],
                 id="already ordered",
             ),
+            pytest.param(
+                [
+                    "# section 1",
+                    "a has a space",
+                    "x",
+                    " b",
+                    "# section 2",
+                    "z",
+                    "e ",
+                    "!e/f/*",
+                    "*.pdf",
+                ],
+                [
+                    "# section 1",
+                    "a has a space",
+                    "b",
+                    "x",
+                    "# section 2",
+                    "*.pdf",
+                    "e",
+                    "!e/f/*",
+                    "z",
+                ],
+                id="with spaces, negation",
+            ),
+            pytest.param(
+                [
+                    "\\!a",
+                    " b",
+                    "a",
+                ],
+                [
+                    "\\!a",
+                    "a",
+                    "b",
+                ],
+                id="escaped !",
+            ),
         ),
     )
-    def test__sort_lines_with_comments(self, input, expected_output):
-        assert list(tidy_lines(GitIgnoreContents(input), allow_leading_whitespace=False)) == expected_output
+    def test_complete(self, input, expected_output):
+        assert self.tidy_lines(input) == expected_output
