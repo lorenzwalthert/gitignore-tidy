@@ -16,8 +16,8 @@ def _create_section_from_normalised(header, lines: list[str], sorted: bool = Fal
 
 
 class TestTidyFile:
-    @pytest.fixture
     @staticmethod
+    @pytest.fixture
     def temp_dir():
         with tempfile.TemporaryDirectory() as temp_dir:
             yield pathlib.Path(temp_dir)

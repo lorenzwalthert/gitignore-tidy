@@ -40,7 +40,7 @@ class GitIgnoreContents:
     """
 
     @classmethod
-    def from_file(cls, path: pathlib.Path) -> typing.Self:
+    def from_file(cls, path: pathlib.Path) -> "GitIgnoreContents":
         if not path.exists():
             raise FileNotFoundError(f"{path} not found.")
 
@@ -112,7 +112,7 @@ class Section:
     One part of a normalised content of a `.gitignore` file
     """
 
-    header: str | None
+    header: typing.Optional[str]
     lines: GitIgnoreContents
     trailing_blanks: int = 0
 
