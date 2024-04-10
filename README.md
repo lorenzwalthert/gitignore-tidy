@@ -13,6 +13,24 @@ a/
 !a/b
 ```
 
+**Caution**
+
+Sorting while preserving the pattern is complex in some cases. If you have
+negating entries and wild-cards that are not at the end of the line within
+the same section, running the current version may change your `.gitignore`
+pattern and we advise against using this program in that case!
+We might revisit the algoritm in the future to fix it for these cases:
+
+```
+# my first section
+*csv
+!*aut.csv
+
+# another
+*.pdf
+```
+Swapping the first two entries in the first section will change the exclusion pattern (just put `a.csv` and `aut.csv` into your repo to see why).
+
 ## CLI
 
 ```bash
