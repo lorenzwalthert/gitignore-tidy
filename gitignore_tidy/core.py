@@ -10,15 +10,15 @@ from gitignore_tidy.logging import logger
 def tidy_file(path: pathlib.Path, *, allow_leading_whitespace: bool = False):
     lines = GitIgnoreContents.from_file(path)
     if len(lines) < 1:
-        logger.fatal(f"File {path} is empty, not writing.")
+        logger.info(f"File {path} is empty, not writing.")
         return
 
     sorted_contents = tidy_lines(lines, allow_leading_whitespace=allow_leading_whitespace)
     if lines.lines == sorted_contents.lines:
-        logger.fatal(f"{path} already tidy.")  # TODO use logger module
+        logger.info(f"{path} already tidy.")  # TODO use logger module
     else:
         sorted_contents.to_file(path)
-        logger.fatal(f"Successfully written {path}.")
+        logger.info(f"Successfully written {path}.")
 
 
 def tidy_lines(lines: "GitIgnoreContents", allow_leading_whitespace: bool) -> "NormalisedGitIgnoreContents":
