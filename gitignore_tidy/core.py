@@ -9,38 +9,38 @@ from gitignore_tidy.logging import logger
 
 
 def tidy_file(path: pathlib.Path, *, allow_leading_whitespace: bool = False):
-    lines = GitIgnoreContents.from_file(path)
+    lines = PlainLines.from_file(path)
     if len(lines) < 1:
         logger.info(f"File {path} is empty, not writing.")
         return
 
-    sorted_contents = tidy_lines(lines, allow_leading_whitespace=allow_leading_whitespace)
-    if lines.lines == sorted_contents.lines:
+    tidy_plain_lines = tidy_lines(lines, allow_leading_whitespace=allow_leading_whitespace)
+    if lines.lines == tidy_plain_lines.lines:
         logger.info(f"{path} already tidy.")  # TODO use logger module
     else:
-        sorted_contents.to_file(path)
+        tidy_plain_lines.to_file(path)
         logger.info(f"Successfully written {path}.")
 
 
-def tidy_lines(lines: "GitIgnoreContents", allow_leading_whitespace: bool) -> "GitIgnoreContents":
+def tidy_lines(lines: "PlainLines", allow_leading_whitespace: bool) -> "PlainLines":
     normalised_contents = lines.normalize(allow_leading_whitespace=allow_leading_whitespace)
     sorted_sections = Sections(tuple(section.sort() for section in normalised_contents.split()))
-    return sorted_sections.as_contents()
+    return sorted_sections.as_plain()
 
 
 @dataclasses.dataclass(frozen=True)
-class GitIgnoreContents:
+class PlainLines:
+    """
+    Flat representation of a `.gitignore` file or parts of it
+    """
+
     lines: list[str]
 
     normalised: bool = False
     sorted: bool = False
 
-    """
-    Flat representation of a `.gitignore` file or parts of it
-    """
-
     @classmethod
-    def from_file(cls, path: pathlib.Path) -> "GitIgnoreContents":
+    def from_file(cls, path: pathlib.Path) -> "PlainLines":
         if not path.exists():
             raise FileNotFoundError(f"{path} not found.")
 
@@ -53,7 +53,7 @@ class GitIgnoreContents:
         with path.open("w") as f:
             f.writelines([line + "\n" for line in self.lines])
 
-    def normalize(self, allow_leading_whitespace: bool = False) -> "GitIgnoreContents":
+    def normalize(self, allow_leading_whitespace: bool = False) -> "PlainLines":
         lines = self.lines
         if not allow_leading_whitespace:
             lines = [re.sub("^(!)? *\t*", "\\1", line) for line in lines]
@@ -63,7 +63,7 @@ class GitIgnoreContents:
         for line in lines:
             if line not in unique or line == "":
                 unique.append(line)
-        return GitIgnoreContents(unique, normalised=True, sorted=self.sorted)
+        return PlainLines(unique, normalised=True, sorted=self.sorted)
 
     def __iter__(self) -> typing.Iterator[str]:
         return iter(self.lines)
@@ -73,7 +73,7 @@ class GitIgnoreContents:
 
     def split(self) -> "Sections":
         if not self.normalised:
-            raise AssertionError("`GitIgnoreContents` must be normalised before splitting is possible.")
+            raise AssertionError("`PlainLines` must be normalised before splitting is possible.")
 
         lines = self.lines
         sections = dict()
@@ -98,7 +98,7 @@ class GitIgnoreContents:
         sections = (
             Section(
                 header,
-                GitIgnoreContents(content["values"], normalised=self.normalised, sorted=False),
+                PlainLines(content["values"], normalised=self.normalised, sorted=False),
                 content["trailing_blanks"],
             )
             for header, content in sections.items()
@@ -114,11 +114,11 @@ class Section:
     """
 
     header: typing.Optional[str]
-    lines: GitIgnoreContents
+    lines: PlainLines
     trailing_blanks: int = 0
 
     def __post_init__(self):
-        assert self.normalised, "Sections can't be initiated without normalised contents."
+        assert self.normalised, "Sections can't be initiated without normalised `PlainLines`."
 
     @cached_property
     def normalised(self):
@@ -131,7 +131,7 @@ class Section:
     def sort(self) -> "Section":
         return Section(
             self.header,
-            GitIgnoreContents(self._sort(self.lines.lines), normalised=True, sorted=True),
+            PlainLines(self._sort(self.lines.lines), normalised=True, sorted=True),
             self.trailing_blanks,
         )
 
@@ -179,6 +179,6 @@ class Sections:
     def __iter__(self) -> typing.Iterator[Section]:
         return iter(self.sections)
 
-    def as_contents(self) -> GitIgnoreContents:
+    def as_plain(self) -> PlainLines:
         lines = list(itertools.chain(*(list(section) for section in self)))
-        return GitIgnoreContents(lines, normalised=self.normalised, sorted=self.sorted)
+        return PlainLines(lines, normalised=self.normalised, sorted=self.sorted)

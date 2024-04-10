@@ -4,15 +4,16 @@ import tempfile
 
 import pytest
 
-from gitignore_tidy.core import GitIgnoreContents
+from gitignore_tidy.core import PlainLines
 from gitignore_tidy.core import Section
 from gitignore_tidy.core import Sections
 from gitignore_tidy.core import tidy_file
 from gitignore_tidy.core import tidy_lines
 
 
+# TODO when to move functions out of test class?
 def _create_section_from_normalised(header, lines: list[str], sorted: bool = False, trailing_blanks: int = 0):
-    return Section(header, GitIgnoreContents(lines, normalised=True, sorted=sorted), trailing_blanks=trailing_blanks)
+    return Section(header, PlainLines(lines, normalised=True, sorted=sorted), trailing_blanks=trailing_blanks)
 
 
 class TestTidyFile:
@@ -68,11 +69,11 @@ class TestTidyFile:
         assert re.search("empty", caplog.text)
 
 
-class TestGitIgnoreContents:
+class TestPlainLines:
 
     def test_iter(self):
         it = ["a", "c", "1"]
-        assert list(GitIgnoreContents(it)) == it
+        assert list(PlainLines(it)) == it
 
     @pytest.mark.parametrize(
         ("input", "expected_output", "allow_leading_whitespace"),
@@ -86,22 +87,19 @@ class TestGitIgnoreContents:
         ),
     )
     def test_normalize(self, input, expected_output, allow_leading_whitespace):
-        assert (
-            GitIgnoreContents(input).normalize(allow_leading_whitespace=allow_leading_whitespace).lines
-            == expected_output
-        )
+        assert PlainLines(input).normalize(allow_leading_whitespace=allow_leading_whitespace).lines == expected_output
 
     def test_from_file(self, untidy_contents):
         with tempfile.TemporaryDirectory() as temp_dir:
             path = pathlib.Path(temp_dir, ".gitignore")
             with path.open("w") as file:
                 file.write(untidy_contents)
-            assert GitIgnoreContents.from_file(path) == GitIgnoreContents(untidy_contents.split("\n"))
+            assert PlainLines.from_file(path) == PlainLines(untidy_contents.split("\n"))
 
     def test_to_file(self, untidy_contents):
         with tempfile.TemporaryDirectory() as temp_dir:
             path = pathlib.Path(temp_dir, ".gitignore")
-            GitIgnoreContents(untidy_contents.split("\n")).to_file(path)
+            PlainLines(untidy_contents.split("\n")).to_file(path)
             with path.open("r") as f:
                 lines = f.readlines()
         assert untidy_contents.split("\n") == [line.rstrip() for line in lines]
@@ -113,19 +111,19 @@ class TestGitIgnoreContents:
                 ["b", "a", "", "#", "q"],
                 Sections(
                     (
-                        Section(None, GitIgnoreContents(["b", "a", ""], normalised=True)),
-                        Section("#", GitIgnoreContents(["q"], normalised=True), trailing_blanks=1),
+                        Section(None, PlainLines(["b", "a", ""], normalised=True)),
+                        Section("#", PlainLines(["q"], normalised=True), trailing_blanks=1),
                     ),
                 ),
             ),
             (
                 ["# b", "a", "q"],  # if has spaces, it's not normalised
-                Sections((Section("# b", GitIgnoreContents(["a", "q"], normalised=True), trailing_blanks=0),)),
+                Sections((Section("# b", PlainLines(["a", "q"], normalised=True), trailing_blanks=0),)),
             ),
         ],
     )
     def test_split(self, input, expected_output):
-        assert GitIgnoreContents(input, normalised=True).split() == expected_output
+        assert PlainLines(input, normalised=True).split() == expected_output
 
 
 class TestSection:
@@ -185,12 +183,12 @@ class TestSections:
     REPS: int = 2
 
     @classmethod
-    def lines(cls):  # trade-off repetition and simple vs generic and harder to test / understand
+    def contents(cls):  # TODO trade-off repetition and simple vs generic and harder to test / understand
         return ["# h1", "b", "c"]
 
     @classmethod
     def _sections_tuple(cls):  # TODO: underscore here and all other tests?
-        return (_create_section_from_normalised(cls.lines()[0], cls.lines()[1:]),) * cls.REPS
+        return (_create_section_from_normalised(cls.contents()[0], cls.contents()[1:]),) * cls.REPS
 
     @classmethod
     def _sections(cls):
@@ -201,14 +199,14 @@ class TestSections:
         assert tuple(self._sections()) == self._sections_tuple()
 
     def test_as_contents(self):
-        assert self._sections().as_contents() == GitIgnoreContents(self.lines() * self.REPS, normalised=True)
+        assert self._sections().as_plain() == PlainLines(self.contents() * self.REPS, normalised=True)
 
 
 class TestTidyLines:
 
     @classmethod
     def tidy_lines(cls, input):
-        return list(tidy_lines(GitIgnoreContents(input), allow_leading_whitespace=False))
+        return list(tidy_lines(PlainLines(input), allow_leading_whitespace=False))
 
     @pytest.mark.parametrize(
         ("input", "expected_output"),
