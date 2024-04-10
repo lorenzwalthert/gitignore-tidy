@@ -4,21 +4,27 @@ import pathlib
 import re
 import typing
 
+from gitignore_tidy.logging import logger
+
+
+def tidy_file(path: pathlib.Path, *, allow_leading_whitespace: bool = False):
+    lines = GitIgnoreContents.from_file(path)
+    if len(lines) < 1:
+        logger.fatal(f"File {path} is empty, not writing.")
+        return
+
+    sorted_contents = tidy_lines(lines, allow_leading_whitespace=allow_leading_whitespace)
+    if lines.lines == sorted_contents.lines:
+        logger.fatal(f"{path} already tidy.")  # TODO use logger module
+    else:
+        sorted_contents.to_file(path)
+        logger.fatal(f"Successfully written {path}.")
+
 
 def tidy_lines(lines: "GitIgnoreContents", allow_leading_whitespace: bool) -> "NormalisedGitIgnoreContents":
     normalised_contents = lines.normalize(allow_leading_whitespace=allow_leading_whitespace)
     sorted_sections = SortedSections(tuple(section.sort() for section in normalised_contents.split()))
     return sorted_sections.as_contents()
-
-
-def tidy_file(path: pathlib.Path, *, allow_leading_whitespace: bool = False):
-    lines = GitIgnoreContents.from_file(path)
-    sorted_contents = tidy_lines(lines, allow_leading_whitespace=allow_leading_whitespace)
-    if lines.lines == sorted_contents.lines:
-        print(f"{path} already tidy.")  # TODO use logger module
-    else:
-        sorted_contents.to_file(path)
-        print(f"Successfully written {path}.")
 
 
 @dataclasses.dataclass(frozen=True)
@@ -38,9 +44,6 @@ class GitIgnoreContents:
 
         with path.open("r") as f:
             lines = f.read().splitlines()
-
-        if len(lines) < 1:
-            raise NotImplementedError
 
         return cls(lines)
 
@@ -62,6 +65,9 @@ class GitIgnoreContents:
 
     def __iter__(self) -> typing.Iterator[str]:
         return iter(self.lines)
+
+    def __len__(self) -> int:
+        return len(self.lines)
 
 
 class NormalisedGitIgnoreContents(GitIgnoreContents):

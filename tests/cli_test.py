@@ -1,44 +1,18 @@
-import os
-import re
-import tempfile
-
 from typer.testing import CliRunner
 
 from gitignore_tidy.cli import app
+from tests.core_test import TestTidyFile
 
 runner = CliRunner()
 
 
-def test_cli(contents):
+class TestCLI(TestTidyFile):
 
-    with tempfile.TemporaryDirectory() as temp_dir:
-        g1 = os.path.join(temp_dir, ".gitignore")
-        with open(g1, "w") as file:
-            file.write(contents)
+    def test_unclean_multiple(self, temp_dir, contents):
 
-        dir2 = os.path.join(temp_dir, "docs")
-        os.mkdir(dir2)
-        g2 = os.path.join(dir2, ".gitignore")
-        with open(g2, "w") as file:
-            file.write(contents)
+        path_first = self.write(temp_dir, contents=contents)
 
-        result = runner.invoke(app, [g1, g2])
+        path_second = self.write(temp_dir / "docs", contents=contents)
+
+        result = runner.invoke(app, [str(path_first), str(path_second)])
         assert result.exit_code == 0
-        assert re.search(
-            f"^Successfully written {g1}\\.\nSuccessfully written {g2}",
-            result.stdout,
-        )
-
-        result = runner.invoke(app, [g1])
-        assert result.exit_code == 0
-        # assert re.search('already' in result.stdout
-        assert re.search(f"^{g1} already tidy.\n$", result.stdout)
-        # second file is processed when first file is ok
-        with open(g2, "w") as file:
-            file.write(contents)
-
-        result = runner.invoke(app, [g1, g2])
-        assert re.search(
-            f"^{g1} already tidy\\.\nSuccessfully written {g2}.\n$",
-            result.stdout,
-        )

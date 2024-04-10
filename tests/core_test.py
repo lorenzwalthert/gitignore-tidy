@@ -1,4 +1,5 @@
 import pathlib
+import re
 import tempfile
 
 import pytest
@@ -15,6 +16,59 @@ from gitignore_tidy.core import tidy_lines
 def _create_section(header, input: list[str], trailing_blanks: int = 0, sorted: bool = False):
     constructor = SortedSection if sorted else Section
     return constructor(header, NormalisedGitIgnoreContents(input), trailing_blanks=trailing_blanks)
+
+
+class TestTidyFile:
+    @pytest.fixture
+    @staticmethod
+    def temp_dir():
+        with tempfile.TemporaryDirectory() as temp_dir:
+            yield pathlib.Path(temp_dir)
+
+    @staticmethod
+    def write(*path: str, contents: str):
+        full = pathlib.Path(*path, ".gitignore")
+        full.parent.mkdir(exist_ok=True)
+        with full.open("w") as file:
+            file.write(contents)
+        return full
+
+    def test_clean(self, caplog, temp_dir, tidy_contents):
+        path_first = self.write(temp_dir, contents=tidy_contents)
+
+        tidy_file(path_first)
+        assert re.search(f"{path_first} already tidy", caplog.text)
+
+    def test_unclean_multiple(self, caplog, temp_dir, contents):
+
+        path_first = self.write(temp_dir, contents=contents)
+
+        path_second = self.write(temp_dir / "docs", contents=contents)
+        tuple(tidy_file(path) for path in [path_first, path_second])
+        assert re.search(
+            f"Successfully written {path_first}\\.\n.*Successfully written {path_second}",
+            caplog.text,
+        )
+
+    def test_mixed(self, caplog, temp_dir, contents, tidy_contents):
+
+        path_first = self.write(temp_dir, contents=tidy_contents)
+
+        path_second = self.write(temp_dir / "docs", contents=contents)
+
+        tuple(tidy_file(path) for path in [path_first, path_second])
+
+        assert re.search(
+            f"{path_first} already tidy\\.\n.*Successfully written {path_second}.",
+            caplog.text,
+        )
+
+    def test_empty(self, caplog, temp_dir):
+
+        path_first = self.write(temp_dir, contents="")
+        tidy_file(path_first)
+
+        assert re.search("empty", caplog.text)
 
 
 class TestGitIgnoreContents:
@@ -305,19 +359,3 @@ class TestTidyLines:
     )
     def test__sort_lines_with_comments(self, input, expected_output):
         assert list(tidy_lines(GitIgnoreContents(input), allow_leading_whitespace=False)) == expected_output
-
-
-class TestTidyFile:
-
-    def test_tidy_file(self, contents, tidy_contents):
-        with tempfile.TemporaryDirectory() as temp_dir:
-            path = pathlib.Path(temp_dir, ".gitignore")
-            with path.open("w") as file:
-                file.write(contents)
-
-            tidy_file(path)
-
-            with path.open("r") as file:
-                output = file.read()
-
-        assert output == tidy_contents
