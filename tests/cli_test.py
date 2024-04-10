@@ -8,11 +8,11 @@ runner = CliRunner()
 
 class TestCLI(TestTidyFile):
 
-    def test_unclean_multiple(self, temp_dir, contents):
+    def test_unclean_multiple(self, temp_dir, untidy_contents):
 
-        path_first = self.write(temp_dir, contents=contents)
+        path_first = self.write(temp_dir, contents=untidy_contents)
 
-        path_second = self.write(temp_dir / "docs", contents=contents)
+        path_second = self.write(temp_dir / "docs", contents=untidy_contents)
 
         result = runner.invoke(app, [str(path_first), str(path_second)])
         assert result.exit_code == 0

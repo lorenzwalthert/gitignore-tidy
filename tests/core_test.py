@@ -36,22 +36,22 @@ class TestTidyFile:
         tidy_file(path_first)
         assert re.search(f"{path_first} already tidy", caplog.text)
 
-    def test_unclean_multiple(self, caplog, temp_dir, contents):
+    def test_unclean_multiple(self, caplog, temp_dir, untidy_contents):
 
-        path_first = self.write(temp_dir, contents=contents)
+        path_first = self.write(temp_dir, contents=untidy_contents)
 
-        path_second = self.write(temp_dir / "docs", contents=contents)
+        path_second = self.write(temp_dir / "docs", contents=untidy_contents)
         tuple(tidy_file(path) for path in [path_first, path_second])
         assert re.search(
             f"Successfully written {path_first}\\.\n.*Successfully written {path_second}",
             caplog.text,
         )
 
-    def test_mixed(self, caplog, temp_dir, contents, tidy_contents):
+    def test_mixed(self, caplog, temp_dir, untidy_contents, tidy_contents):
 
         path_first = self.write(temp_dir, contents=tidy_contents)
 
-        path_second = self.write(temp_dir / "docs", contents=contents)
+        path_second = self.write(temp_dir / "docs", contents=untidy_contents)
 
         tuple(tidy_file(path) for path in [path_first, path_second])
 
@@ -91,20 +91,20 @@ class TestGitIgnoreContents:
             == expected_output
         )
 
-    def test_from_file(self, contents):
+    def test_from_file(self, untidy_contents):
         with tempfile.TemporaryDirectory() as temp_dir:
             path = pathlib.Path(temp_dir, ".gitignore")
             with path.open("w") as file:
-                file.write(contents)
-            assert GitIgnoreContents.from_file(path) == GitIgnoreContents(contents.split("\n"))
+                file.write(untidy_contents)
+            assert GitIgnoreContents.from_file(path) == GitIgnoreContents(untidy_contents.split("\n"))
 
-    def test_to_file(self, contents):
+    def test_to_file(self, untidy_contents):
         with tempfile.TemporaryDirectory() as temp_dir:
             path = pathlib.Path(temp_dir, ".gitignore")
-            GitIgnoreContents(contents.split("\n")).to_file(path)
+            GitIgnoreContents(untidy_contents.split("\n")).to_file(path)
             with path.open("r") as f:
                 lines = f.readlines()
-        assert contents.split("\n") == [line.rstrip() for line in lines]
+        assert untidy_contents.split("\n") == [line.rstrip() for line in lines]
 
     @pytest.mark.parametrize(
         ("input", "expected_output"),

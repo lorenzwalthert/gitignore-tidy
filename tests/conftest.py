@@ -4,7 +4,7 @@ import pytest
 
 
 @pytest.fixture
-def contents():
+def untidy_contents():
     return """\
     a
     b
