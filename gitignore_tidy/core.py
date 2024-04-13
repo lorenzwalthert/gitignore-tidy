@@ -47,8 +47,6 @@ class PlainLines:
 
     @classmethod
     def from_file(cls, path: pathlib.Path) -> "PlainLines":
-        if not path.exists():
-            raise FileNotFoundError(f"{path} not found.")
 
         with path.open("r") as f:
             lines = f.read().splitlines()
