@@ -2,10 +2,16 @@ import dataclasses
 import itertools
 import pathlib
 import re
+import sys
 import typing
 from functools import cached_property
 
 from gitignore_tidy.logging import logger
+
+if sys.version_info < (3, 11):
+    from typing_extensions import Self
+else:
+    from typing import Self  # noqa: F401
 
 
 def tidy_file(path: pathlib.Path, *, allow_leading_whitespace: bool = False):
