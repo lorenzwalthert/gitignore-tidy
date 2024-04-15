@@ -16,7 +16,7 @@ else:
     from typing import Self  # noqa: F401
 
 
-def tidy_file(path: pathlib.Path, *, allow_leading_whitespace: bool = False):
+def tidy_file(path: pathlib.Path, *, allow_leading_whitespace: bool = False) -> None:
     lines = PlainLines.from_file(path)
     if len(lines) < 1:
         logger.info("File %s is empty, not writing.", path)
