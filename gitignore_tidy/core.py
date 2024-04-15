@@ -19,15 +19,15 @@ else:
 def tidy_file(path: pathlib.Path, *, allow_leading_whitespace: bool = False):
     lines = PlainLines.from_file(path)
     if len(lines) < 1:
-        logger.info(f"File {path} is empty, not writing.")
+        logger.info("File %s is empty, not writing.", path)
         return
 
     tidy_plain_lines = tidy_lines(lines, allow_leading_whitespace=allow_leading_whitespace)
     if lines.lines == tidy_plain_lines.lines:
-        logger.info(f"{path} already tidy.")  # TODO use logger module
+        logger.info("%s already tidy.", path)  # TODO use logger module
     else:
         tidy_plain_lines.to_file(path)
-        logger.info(f"Successfully written {path}.")
+        logger.info("Successfully written %s.", path)
 
 
 def tidy_lines(lines: PlainLines, allow_leading_whitespace: bool) -> PlainLines:
