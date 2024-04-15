@@ -60,9 +60,10 @@ class PlainLines:
             f.writelines(line + "\n" for line in self.lines)
 
     def normalize(self, allow_leading_whitespace: bool = False) -> Self:
-        lines = self.lines
-        if not allow_leading_whitespace:
-            lines = [re.sub("^(!)? *\t*", "\\1", line) for line in lines]
+        if allow_leading_whitespace:
+            lines = self.lines
+        else:
+            lines = [re.sub("^(!)? *\t*", "\\1", line) for line in self.lines]
         lines = [re.sub(" *\t*$", "", line) for line in lines]
         unique = []
 
