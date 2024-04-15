@@ -55,7 +55,7 @@ class PlainLines:
 
         return cls(lines, normalised=False, sorted=False)
 
-    def to_file(self, path: pathlib.Path):
+    def to_file(self, path: pathlib.Path) -> None:
         with path.open("w") as f:
             f.writelines(line + "\n" for line in self.lines)
 
