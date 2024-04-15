@@ -57,7 +57,7 @@ class PlainLines:
 
     def to_file(self, path: pathlib.Path):
         with path.open("w") as f:
-            f.writelines([line + "\n" for line in self.lines])
+            f.writelines(line + "\n" for line in self.lines)
 
     def normalize(self, allow_leading_whitespace: bool = False) -> Self:
         lines = self.lines
