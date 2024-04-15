@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import collections.abc
 import dataclasses
 import itertools
 import pathlib
@@ -42,7 +43,7 @@ class PlainLines:
     Flat representation of a `.gitignore` file or parts of it
     """
 
-    lines: list[str]
+    lines: collections.abc.Sequence[str]
 
     normalised: bool = False
     sorted: bool = False
@@ -151,7 +152,7 @@ class Section:
         return iter(elements)
 
     @staticmethod
-    def _sort(lines: list[str]) -> list[str]:
+    def _sort(lines: collections.abc.Sequence[str]) -> list[str]:
         original = lines
         non_negated = [re.sub("^!", "", line) for line in lines]
         sorted_non_negated = sorted(non_negated)
