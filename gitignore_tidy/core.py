@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import dataclasses
 import itertools
 import pathlib
@@ -28,7 +30,7 @@ def tidy_file(path: pathlib.Path, *, allow_leading_whitespace: bool = False):
         logger.info(f"Successfully written {path}.")
 
 
-def tidy_lines(lines: "PlainLines", allow_leading_whitespace: bool) -> "PlainLines":
+def tidy_lines(lines: PlainLines, allow_leading_whitespace: bool) -> PlainLines:
     normalised_contents = lines.normalize(allow_leading_whitespace=allow_leading_whitespace)
     sorted_sections = Sections(tuple(section.sort() for section in normalised_contents.split()))
     return sorted_sections.as_plain()
@@ -46,7 +48,7 @@ class PlainLines:
     sorted: bool = False
 
     @classmethod
-    def from_file(cls, path: pathlib.Path) -> "PlainLines":
+    def from_file(cls, path: pathlib.Path) -> PlainLines:
 
         with path.open("r") as f:
             lines = f.read().splitlines()
@@ -57,7 +59,7 @@ class PlainLines:
         with path.open("w") as f:
             f.writelines([line + "\n" for line in self.lines])
 
-    def normalize(self, allow_leading_whitespace: bool = False) -> "PlainLines":
+    def normalize(self, allow_leading_whitespace: bool = False) -> PlainLines:
         lines = self.lines
         if not allow_leading_whitespace:
             lines = [re.sub("^(!)? *\t*", "\\1", line) for line in lines]
@@ -75,7 +77,7 @@ class PlainLines:
     def __len__(self) -> int:
         return len(self.lines)
 
-    def split(self) -> "Sections":
+    def split(self) -> Sections:
         if not self.normalised:
             raise AssertionError("`PlainLines` must be normalised before splitting is possible.")
 
@@ -117,7 +119,7 @@ class Section:
     trailing blanks parsed.
     """
 
-    header: typing.Optional[str]
+    header: str | None
     lines: PlainLines
     trailing_blanks: int = 0
 
@@ -132,7 +134,7 @@ class Section:
     def sorted(self):
         return self.lines.sorted
 
-    def sort(self) -> "Section":
+    def sort(self) -> Section:
         return Section(
             self.header,
             PlainLines(self._sort(self.lines.lines), normalised=True, sorted=True),
