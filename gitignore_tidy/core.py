@@ -6,7 +6,6 @@ import itertools
 import pathlib
 import re
 import sys
-import typing
 from functools import cached_property
 
 from gitignore_tidy.logging import logger
@@ -49,7 +48,7 @@ class PlainLines:
     sorted: bool = False
 
     @classmethod
-    def from_file(cls, path: pathlib.Path) -> PlainLines:
+    def from_file(cls, path: pathlib.Path) -> Self:
 
         with path.open("r") as f:
             lines = f.read().splitlines()
@@ -60,7 +59,7 @@ class PlainLines:
         with path.open("w") as f:
             f.writelines([line + "\n" for line in self.lines])
 
-    def normalize(self, allow_leading_whitespace: bool = False) -> PlainLines:
+    def normalize(self, allow_leading_whitespace: bool = False) -> Self:
         lines = self.lines
         if not allow_leading_whitespace:
             lines = [re.sub("^(!)? *\t*", "\\1", line) for line in lines]
@@ -70,9 +69,9 @@ class PlainLines:
         for line in lines:
             if line not in unique or line == "":
                 unique.append(line)
-        return PlainLines(unique, normalised=True, sorted=self.sorted)
+        return dataclasses.replace(self, lines=unique, normalised=True, sorted=self.sorted)
 
-    def __iter__(self) -> typing.Iterator[str]:
+    def __iter__(self) -> collections.abc.Iterator[str]:
         return iter(self.lines)
 
     def __len__(self) -> int:
@@ -128,11 +127,11 @@ class Section:
         assert self.normalised, "Sections can't be initiated without normalised `PlainLines`."
 
     @cached_property
-    def normalised(self):
+    def normalised(self) -> bool:
         return self.lines.normalised
 
     @cached_property
-    def sorted(self):
+    def sorted(self) -> bool:
         return self.lines.sorted
 
     def sort(self) -> Section:
@@ -142,17 +141,17 @@ class Section:
             self.trailing_blanks,
         )
 
-    def _materialized_trailing_blanks(self) -> list[typing.Literal[""]]:
-        return [""] * self.trailing_blanks
+    def _materialized_trailing_blanks(self) -> tuple[str, ...]:
+        return tuple([""] * self.trailing_blanks)
 
-    def __iter__(self):
+    def __iter__(self) -> collections.abc.Iterator[str]:
         elements = list(filter(None, [self.header, *self.lines.lines]))
         if self.trailing_blanks > 0:
             [elements.insert(0, blank) for blank in self._materialized_trailing_blanks()]
         return iter(elements)
 
     @staticmethod
-    def _sort(lines: collections.abc.Sequence[str]) -> list[str]:
+    def _sort(lines: collections.abc.Sequence[str]) -> tuple[str]:
         original = lines
         non_negated = [re.sub("^!", "", line) for line in lines]
         sorted_non_negated = sorted(non_negated)
@@ -164,7 +163,7 @@ class Section:
             else:
                 sorted_negated.append(line)
 
-        return sorted_negated
+        return tuple(sorted_negated)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -173,17 +172,17 @@ class Sections:
     The `.gitignore` file, represented as a collection of sections.
     """
 
-    sections: tuple[Section, ...]
+    sections: collections.abc.Sequence[Section]
 
     @cached_property
-    def sorted(self):
+    def sorted(self) -> bool:
         return all(section.sorted for section in self)
 
     @cached_property
-    def normalised(self):
+    def normalised(self) -> bool:
         return all(section.normalised for section in self)
 
-    def __iter__(self) -> typing.Iterator[Section]:
+    def __iter__(self) -> collections.abc.Iterator[Section]:
         return iter(self.sections)
 
     def as_plain(self) -> PlainLines:

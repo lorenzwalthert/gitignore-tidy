@@ -133,12 +133,12 @@ class TestSection:
         (
             pytest.param(
                 ["a", "x", "b"],
-                ["a", "b", "x"],
+                ("a", "b", "x"),
                 id="no comment, no negation",
             ),
             pytest.param(
                 ["a", "x", "!b/c", "b"],
-                ["a", "b", "!b/c", "x"],
+                ("a", "b", "!b/c", "x"),
                 id="no comment, negation",
             ),
         ),
