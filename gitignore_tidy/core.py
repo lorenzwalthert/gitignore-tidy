@@ -6,6 +6,7 @@ import itertools
 import pathlib
 import re
 import sys
+import typing
 from functools import cached_property
 
 from gitignore_tidy.logging import logger
@@ -42,6 +43,9 @@ class PlainLines:
     Flat representation of a `.gitignore` file or parts of it
     """
 
+    _leading_pattern: typing.ClassVar[re.Pattern] = re.compile("^(!)? *\t*")
+    _trailing_pattern: typing.ClassVar[re.Pattern] = re.compile(" *\t*$")
+
     lines: collections.abc.Sequence[str]
 
     normalised: bool = False
@@ -63,8 +67,8 @@ class PlainLines:
         if allow_leading_whitespace:
             lines = self.lines
         else:
-            lines = [re.sub("^(!)? *\t*", "\\1", line) for line in self.lines]
-        lines = [re.sub(" *\t*$", "", line) for line in lines]
+            lines = (re.sub(self._leading_pattern, "\\1", line) for line in self.lines)
+        lines = (re.sub(self._trailing_pattern, "", line) for line in lines)
         unique = []
 
         for line in lines:
