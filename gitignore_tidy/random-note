@@ -1,0 +1,5 @@
+das programm wird wahrscheinlich nicht in Pyton verwendet, sondern v.a. über die kommandozeile.
+es wäre am angemesstnsten, standard logging zu verwenden in der python api und das dann einfach in der CLI anzuzeigen
+leider scheint das nicht zu funktionieren mit typer
+wir können aber die Python API ohne Typer testen
+Pytest scheint leider die l
