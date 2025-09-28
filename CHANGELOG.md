@@ -1,3 +1,24 @@
+## 0.1.3 (2025-09-28)
+
+### Refactor
+
+- simplify conditional
+- iterable is fine, no need for list
+- more type annotation, type fixes
+- be generic about input, specific about output
+- import annotations from __future__ to avoid quoting undeclared classes
+- no need to check for path existance if the goal is to raise the same exception that attempting to read the file would
+- use typing.Self or typing_extensions.Self depending on version with the goal to keep reminder in code
+- more renaming
+- simplify classes
+- use INFO level only
+- convert from functional to object oriented
+
+### Perf
+
+- pre-compile patterns
+- avoid performance implication for fstring formatting in logging
+
 ## 0.1.2 (2024-03-21)
 
 ### Refactor
