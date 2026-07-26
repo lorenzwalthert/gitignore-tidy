@@ -403,6 +403,44 @@ class TestTidyLines:
                 ],
                 id="escaped !",
             ),
+            # New test: preserve unsafe negation anchor in-place while sorting other lines around it
+            pytest.param(
+                [
+                    "# preserve unsafe",
+                    "b",
+                    "a",
+                    "!c/**/",
+                    "z",
+                    "a",
+                ],
+                [
+                    "# preserve unsafe",
+                    "a",
+                    "b",
+                    "!c/**/",
+                    "a",
+                    "z",
+                ],
+                id="preserve unsafe negation",
+            ),
+            # New test: safe negation (single * with no / in suffix) may be reordered
+            pytest.param(
+                [
+                    "# safe negation",
+                    "b",
+                    "a",
+                    "!path/to/*.csv",
+                    "z",
+                ],
+                [
+                    "# safe negation",
+                    "a",
+                    "b",
+                    "!path/to/*.csv",
+                    "z",
+                ],
+                id="safe negation movable",
+            ),
         ),
     )
     def test_complete(self, input, expected_output):
