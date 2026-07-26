@@ -157,18 +157,68 @@ class Section:
 
     @staticmethod
     def _sort(lines: collections.abc.Sequence[str]) -> tuple[str]:
-        original = lines
-        non_negated = [re.sub("^!", "", line) for line in lines]
-        sorted_non_negated = sorted(non_negated)
-        sorted_negated = []
-        for line in sorted_non_negated:
-            negated_cand = "!" + line
-            if negated_cand in original:
-                sorted_negated.append(negated_cand)
-            else:
-                sorted_negated.append(line)
+        """
+        Sort section lines while preserving unsafe negations in-place.
 
-        return tuple(sorted_negated)
+        Rules:
+        - A negated line (starting with "!") is considered safe to move if its
+          pattern (without "!") contains either no "*" at all, or exactly one "*"
+          and the substring after the "*" contains no "/" and no other wildcards.
+          Patterns with "**" or "?" are considered unsafe and act as anchors.
+        - Unsafe negated lines remain at their original indices.
+        - All other lines are sorted by their base pattern (leading "!" removed).
+          For equal bases, non-negated lines come before negated ones.
+        """
+        original = list(lines)
+
+        def _is_safe_to_move(pattern: str) -> bool:
+            # pattern here is without leading "!"
+            # double star or question mark -> unsafe
+            if "**" in pattern or "?" in pattern:
+                return False
+            star_count = pattern.count("*")
+            if star_count == 0:
+                return True
+            if star_count == 1:
+                idx = pattern.find("*")
+                suffix = pattern[idx + 1 :]
+                # disallow path separators or additional wildcards after the single star
+                if "/" in suffix or ("*" in suffix) or ("?" in suffix):
+                    return False
+                return True
+            # more than one star -> unsafe
+            return False
+
+        # identify anchors: indices of negated lines that are unsafe to move
+        anchors: dict[int, str] = {}
+        for idx, line in enumerate(original):
+            if line.startswith("!"):
+                base = line[1:]
+                if not _is_safe_to_move(base):
+                    anchors[idx] = line
+
+        # collect movables (lines not anchored)
+        movables = [line for idx, line in enumerate(original) if idx not in anchors]
+
+        # sort movables by base pattern, and ensure non-negated before negated for same base
+        def sort_key(l: str):
+            base = re.sub(r"^!", "", l)
+            is_neg = l.startswith("!")
+            return (base, is_neg)
+
+        sorted_movables = sorted(movables, key=sort_key)
+
+        # Reconstruct result: place anchors at original indices, fill remaining slots left-to-right
+        result: list[str] = [None] * len(original)  # type: ignore[list-item]
+        for idx, anchored_line in anchors.items():
+            result[idx] = anchored_line
+
+        it = iter(sorted_movables)
+        for i in range(len(result)):
+            if result[i] is None:
+                result[i] = next(it)
+
+        return tuple(result)
 
 
 @dataclasses.dataclass(frozen=True)
