@@ -5,7 +5,6 @@ import typer
 
 from gitignore_tidy.core import tidy_file
 
-
 app = typer.Typer()
 
 
