@@ -5,21 +5,30 @@ This little python package exposes one command line executable and [pre-commit h
 * remove leading or trailing white space (unless `--allow-leading-white-space` is set).
 * remove duplicate entries.
 * allow at most one blank line before comments.
-* order entries while respecting that [negating entries](https://git-scm.com/docs/gitignore#_pattern_format) must always go *after* non-negating entries, e.g.
-
+* sort entries without ever changing what your `.gitignore` matches. The
+  order of [negating entries](https://git-scm.com/docs/gitignore#_pattern_format)
+  relative to other entries can change the meaning of the file, so every
+  negating entry (leading `!`) is left exactly where it is; only the runs of
+  non-negating entries between them are sorted:
 
 ```
-a/
-!a/b
+b
+a
+!c/**/
+z
 ```
 
-**Caution**
+becomes
 
-Sorting while preserving the pattern is complex in some cases. If you have
-negating entries and wild-cards that are not at the end of the line within
-the same section, running the current version may change your `.gitignore`
-pattern and we advise against using this program in that case!
-We might revisit the algoritm in the future to fix it for these cases:
+```
+a
+b
+!c/**/
+z
+```
+
+This makes the following safe, whereas older versions would silently turn
+`aut.csv` from tracked into ignored:
 
 ```
 # my first section
@@ -29,12 +38,27 @@ We might revisit the algoritm in the future to fix it for these cases:
 # another
 *.pdf
 ```
-Swapping the first two entries in the first section will change the exclusion pattern (just put `a.csv` and `aut.csv` into your repo to see why).
+
+**`--negations-last`**
+
+If you prefer all negating entries collected at the end, opt in with
+`--negations-last`:
+
+* `--negations-last=group` – within each section, sorted non-negating entries
+  first, then that section's sorted negating entries.
+* `--negations-last=eof` – all negating entries from the whole file, sorted,
+  moved into a single block at the end.
+
+**Caution:** unlike the default, both of these move negating entries relative
+to other entries and *can* change which paths your `.gitignore` matches. Only
+use them if you know your patterns don't rely on ordering.
 
 ## CLI
 
 ```bash
 gitignore-tidy # in repo root
+gitignore-tidy path/to/.gitignore another/.gitignore
+gitignore-tidy --negations-last=group   # optional, see caution above
 ```
 
 ## pre-commit hook
@@ -47,6 +71,7 @@ In your `.pre-commit-config.yaml`:
     hooks:
     -   id: tidy-gitignore
         # args: [--allow-leading-whitespace]
+        # args: [--negations-last=group]
 ```
 
 And run `pre-commit autopudate` to get the latest hook version.
